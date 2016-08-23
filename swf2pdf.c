@@ -12,6 +12,8 @@ int verbose = 0;
 const char* output_file = "output.pdf";
 char** input_files = NULL;
 int num_input_files = 0;
+int read_from_stdin = 0;
+const char* program_name = "swf2pdf";
 
 typedef enum {fail_on_error, skip_on_error, blank_on_error} error_mode;
 error_mode on_error = blank_on_error;
@@ -96,20 +98,42 @@ int from_stdin(cairo_surface_t* surface, cairo_t* context) {
     return lines_read;
 }
 
-void usage() {
-    printf("Usage: swf2pdf [-o OUTPUT_FILE] [swf_file...]\n");
+void print_usage() {
+    printf("Usage: %s [-s] [-v] [-o OUTPUTFILE] [-e ERROR_MODE] [SWF_FILE]...\n", program_name);
+}
+
+void usage(const char* message) {
+    printf("Error: %s", message);
+    print_usage();
+    printf("Try '%s --help' for more information\n", program_name);
     exit (EXIT_FAILURE);
+}
+
+void help() {
+    print_usage();
+    printf("%s - Convert swf files to pdf\n\n", program_name);
+    printf("Options:\n");
+    printf(" -o, --output FILE       Set the output filename\n");
+    printf(" -e, --error-mode MODE   Specify how to handle errors when loading swf files.\n");
+    printf("                           MODE is 'fail' to cancel the entire conversion,\n");
+    printf("                           'skip' to continue and skip the current page, or,\n");
+    printf("                           'blank' to continue with the current page blank\n");
+    printf(" -v, --verbose           Write information about status to output\n");
+    printf(" -s, --stdin             Read file to load from stdin in addition to arguments\n");
+    printf(" -h, --help              Display this information and exit\n");
+    exit (EXIT_SUCCESS);
 }
 
 int main(int argc, char* argv[]) {
     char* arg;
+    program_name = argv[0];
     for (int i = 1; i < argc; i++) {
         arg = argv[i];
         if (strcmp(arg, "-o") == 0 || strcmp(arg, "--output") == 0) {
-            if (++i >= argc) {usage();}
+            if (++i >= argc) {usage("Error: Missing argument for -o/--output");}
             output_file = argv[i];
         } else if (strcmp(arg, "-e") == 0 || strcmp(arg, "--error-mode") == 0) {
-            if (++i >= argc) {usage();}
+            if (++i >= argc) {usage("Error: Missing argument for -e/--error-mode");}
             if (argv[i][0] == 'b' || argv[i][0] == 'B') {
                 on_error = blank_on_error;
             } else if (argv[i][0] == 'f' || argv[i][0] == 'F') {
@@ -117,8 +141,10 @@ int main(int argc, char* argv[]) {
             } else if (argv[i][0] == 's' || argv[i][0] == 'S') {
                 on_error = skip_on_error;
             }
+        } else if (strcmp(arg, "-s") == 0 || strcmp(arg, "--stdin") == 0) {
+            read_from_stdin = 1;
         } else if (strcmp(arg, "-h") == 0 || strcmp(arg, "--help") == 0) {
-            usage();
+            help();
         } else if (strcmp(arg, "-v") == 0 || strcmp(arg, "--verbose") == 0) {
             verbose = 1;
         } else {
@@ -127,15 +153,17 @@ int main(int argc, char* argv[]) {
             input_files[num_input_files - 1] = arg;
         }
     }
+    if (!(num_input_files > 0 || read_from_stdin)) {
+        usage("No input files supplied\n");
+    }
     fclose(stderr); // Keeps swfdec from writing error messages to the terminal
     cairo_surface_t* surface = cairo_pdf_surface_create(output_file, 0, 0);
     cairo_t* context = cairo_create(surface);
     log_message("Created cairo surface and context\n");
-    int pages;
-    if (num_input_files > 0) {
-        pages = from_args(surface, context);
-    } else {
-        pages = from_stdin(surface, context);
+    int pages = 0;
+    pages += from_args(surface, context);
+    if (read_from_stdin) {
+        pages += from_stdin(surface, context);
     }
     log_message("Finished converting %d swf files\n", pages);
     cairo_destroy(context);

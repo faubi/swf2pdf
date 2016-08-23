@@ -3,7 +3,7 @@ swf2pdf
 
 This is a simple command-line program that takes one or more .swf files (Flash
 animations) and renders the first frame of each into a pdf document (one per
-page). Names of swf files to load can be supplied either as arguments or piped
+page). Names of swf files to load can be supplied as arguments or piped
 to stdin.
 
 This depends on the [swfdec-0.8](https://swfdec.freedesktop.org/wiki/) and
@@ -27,5 +27,5 @@ Examples
 
 * Supply swf files to stdin
 
-    `cat swf-files.txt | swf2pdf`
+    `cat swf-files.txt | swf2pdf --stdin`
 
