@@ -13,12 +13,19 @@ those must be installed for this to run.
 Examples
 -
 
-* Render an swf file to `output.pdf`
-    swf2pdf myflash.swf
+* Render an swf file to output.pdf
+
+    `swf2pdf myflash.swf`
+
 * Specify a different name for the output file
-    swf2pdf myflash.swf -o mypdf.pdf
+
+    `swf2pdf myflash.swf -o mypdf.pdf`
+
 * Render several swfs together
-    swf2pdf page1.swf page2.swf page3.swf -o pages.pdf
+
+    `swf2pdf page1.swf page2.swf page3.swf -o pages.pdf`
+
 * Supply swf files to stdin
-    cat swf-files.txt | swf2pdf
+
+    `cat swf-files.txt | swf2pdf`
 
