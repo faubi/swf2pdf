@@ -64,9 +64,6 @@ int main(int argc, char* argv[]) {
                 usage();
             }
             output_file = argv[i];
-//         }
-//         else if (strcmp(arg, "-s") == 0 || strcmp(arg, "--skip") == 0) {
-//             skip = 1;
         } else if (strcmp(arg, "-h") == 0 || strcmp(arg, "--help") == 0) {
             usage();
         } else {
